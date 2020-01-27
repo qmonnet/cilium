@@ -58,6 +58,7 @@ func (n *Node) UpdatedNode(obj *v2.CiliumNode) {
 	n.k8sObj = obj
 }
 
+// GetMaxAboveWatermark returns the max-above-watermark setting for an AWS node
 func (n *Node) GetMaxAboveWatermark() int {
 	if n.k8sObj.Spec.IPAM.MaxAboveWatermark != 0 {
 		return n.k8sObj.Spec.IPAM.MaxAboveWatermark
@@ -65,6 +66,7 @@ func (n *Node) GetMaxAboveWatermark() int {
 	return n.k8sObj.Spec.ENI.MaxAboveWatermark
 }
 
+// GetPreAllocate returns the pre-allocation setting for an AWS node
 func (n *Node) GetPreAllocate() int {
 	if n.k8sObj.Spec.IPAM.PreAllocate != 0 {
 		return n.k8sObj.Spec.IPAM.PreAllocate
@@ -75,6 +77,7 @@ func (n *Node) GetPreAllocate() int {
 	return defaults.ENIPreAllocation
 }
 
+// GetMinAllocate returns the minimum-allocation setting of an AWS node
 func (n *Node) GetMinAllocate() int {
 	if n.k8sObj.Spec.IPAM.MinAllocate != 0 {
 		return n.k8sObj.Spec.IPAM.MinAllocate
