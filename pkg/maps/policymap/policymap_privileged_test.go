@@ -24,11 +24,15 @@ import (
 
 	"github.com/cilium/cilium/pkg/bpf"
 	"github.com/cilium/cilium/pkg/checker"
+	"github.com/cilium/cilium/pkg/logging"
+	"github.com/cilium/cilium/pkg/logging/logfields"
 	"github.com/cilium/cilium/pkg/policy/trafficdirection"
 	"github.com/cilium/cilium/pkg/u8proto"
 
 	. "gopkg.in/check.v1"
 )
+
+var log = logging.DefaultLogger.WithField(logfields.LogSubsys, "map-policy")
 
 func Test(t *testing.T) {
 	TestingT(t)
