@@ -19,6 +19,7 @@ package policy
 import (
 	"bytes"
 	"fmt"
+	stdlog "log"
 
 	"github.com/cilium/cilium/pkg/checker"
 	"github.com/cilium/cilium/pkg/identity/cache"
@@ -28,7 +29,6 @@ import (
 	"github.com/cilium/cilium/pkg/testutils/allocator"
 	"github.com/cilium/proxy/go/cilium/api"
 
-	"github.com/op/go-logging"
 	. "gopkg.in/check.v1"
 )
 
@@ -137,7 +137,7 @@ func (ds *PolicyTestSuite) TestMergeAllowAllL3AndAllowAllL7(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err := repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -180,7 +180,7 @@ func (ds *PolicyTestSuite) TestMergeAllowAllL3AndAllowAllL7(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctx = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err = repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -234,7 +234,7 @@ func (ds *PolicyTestSuite) TestMergeAllowAllL3AndShadowedL7(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	ingressState := traceState{}
 	res, err := rule1.resolveIngressPolicy(testPolicyContext, &ctx, &ingressState, L4PolicyMap{}, nil)
@@ -303,7 +303,7 @@ func (ds *PolicyTestSuite) TestMergeAllowAllL3AndShadowedL7(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctx = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err := repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -378,7 +378,7 @@ func (ds *PolicyTestSuite) TestMergeIdenticalAllowAllL3AndRestrictedL7HTTP(c *C)
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state := traceState{}
@@ -437,7 +437,7 @@ func (ds *PolicyTestSuite) TestMergeIdenticalAllowAllL3AndRestrictedL7Kafka(c *C
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"9092/TCP": &L4Filter{
@@ -516,7 +516,7 @@ func (ds *PolicyTestSuite) TestMergeIdenticalAllowAllL3AndMismatchingParsers(c *
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state := traceState{}
@@ -560,7 +560,7 @@ func (ds *PolicyTestSuite) TestMergeIdenticalAllowAllL3AndMismatchingParsers(c *
 
 	buffer = new(bytes.Buffer)
 	ctxToA = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state = traceState{}
@@ -605,7 +605,7 @@ func (ds *PolicyTestSuite) TestMergeIdenticalAllowAllL3AndMismatchingParsers(c *
 
 	buffer = new(bytes.Buffer)
 	ctxToA = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	err = conflictingParsersIngressRule.Sanitize()
@@ -650,7 +650,7 @@ func (ds *PolicyTestSuite) TestMergeIdenticalAllowAllL3AndMismatchingParsers(c *
 
 	buffer = new(bytes.Buffer)
 	ctxAToC := SearchContext{From: labelsA, To: labelsC, Trace: TRACE_VERBOSE}
-	ctxAToC.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxAToC.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	err = conflictingParsersEgressRule.Sanitize()
@@ -693,7 +693,7 @@ func (ds *PolicyTestSuite) TestL3RuleShadowedByL3AllowAll(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"80/TCP": &L4Filter{
@@ -751,7 +751,7 @@ func (ds *PolicyTestSuite) TestL3RuleShadowedByL3AllowAll(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctxToA = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected = L4PolicyMap{"80/TCP": &L4Filter{
@@ -822,7 +822,7 @@ func (ds *PolicyTestSuite) TestL3RuleWithL7RulePartiallyShadowedByL3AllowAll(c *
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"80/TCP": &L4Filter{
@@ -893,7 +893,7 @@ func (ds *PolicyTestSuite) TestL3RuleWithL7RulePartiallyShadowedByL3AllowAll(c *
 
 	buffer = new(bytes.Buffer)
 	ctxToA = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected = L4PolicyMap{"80/TCP": &L4Filter{
@@ -977,7 +977,7 @@ func (ds *PolicyTestSuite) TestL3RuleWithL7RuleShadowedByL3AllowAll(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"80/TCP": &L4Filter{
@@ -1059,7 +1059,7 @@ func (ds *PolicyTestSuite) TestL3RuleWithL7RuleShadowedByL3AllowAll(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctxToA = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected = L4PolicyMap{"80/TCP": &L4Filter{
@@ -1144,7 +1144,7 @@ func (ds *PolicyTestSuite) TestL3SelectingEndpointAndL3AllowAllMergeConflictingL
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state := traceState{}
@@ -1195,7 +1195,7 @@ func (ds *PolicyTestSuite) TestL3SelectingEndpointAndL3AllowAllMergeConflictingL
 
 	buffer = new(bytes.Buffer)
 	ctxToA = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state = traceState{}
@@ -1250,7 +1250,7 @@ func (ds *PolicyTestSuite) TestMergingWithDifferentEndpointsSelectedAllowSameL7(
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"80/TCP": &L4Filter{
@@ -1287,7 +1287,7 @@ func (ds *PolicyTestSuite) TestMergingWithDifferentEndpointsSelectedAllowSameL7(
 
 	buffer = new(bytes.Buffer)
 	ctxToC := SearchContext{To: labelsC, Trace: TRACE_VERBOSE}
-	ctxToC.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToC.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state = traceState{}
@@ -1326,7 +1326,7 @@ func (ds *PolicyTestSuite) TestMergingWithDifferentEndpointSelectedAllowAllL7(c 
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"80/TCP": &L4Filter{
@@ -1352,7 +1352,7 @@ func (ds *PolicyTestSuite) TestMergingWithDifferentEndpointSelectedAllowAllL7(c 
 
 	buffer = new(bytes.Buffer)
 	ctxToC := SearchContext{To: labelsC, Trace: TRACE_VERBOSE}
-	ctxToC.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToC.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	state = traceState{}
@@ -1399,7 +1399,7 @@ func (ds *PolicyTestSuite) TestAllowingLocalhostShadowsL7(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctxToA := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctxToA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToA.Logging = stdlog.New(buffer, "", 0)
 
 	expected := L4PolicyMap{"80/TCP": &L4Filter{
 		Port:            80,
@@ -1436,7 +1436,7 @@ func (ds *PolicyTestSuite) TestAllowingLocalhostShadowsL7(c *C) {
 	// Endpoints not selected by the rule should not match the rule.
 	buffer = new(bytes.Buffer)
 	ctxToC := SearchContext{To: labelsC, Trace: TRACE_VERBOSE}
-	ctxToC.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxToC.Logging = stdlog.New(buffer, "", 0)
 
 	state = traceState{}
 	res, err = rule.resolveIngressPolicy(testPolicyContext, toFoo, &state, L4PolicyMap{}, nil)
@@ -1461,7 +1461,7 @@ func (ds *PolicyTestSuite) TestEntitiesL3(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctxFromA := SearchContext{From: labelsA, Trace: TRACE_VERBOSE}
-	ctxFromA.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctxFromA.Logging = stdlog.New(buffer, "", 0)
 	c.Log(buffer)
 
 	expected := L4PolicyMap{"0/ANY": &L4Filter{

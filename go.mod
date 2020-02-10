@@ -54,7 +54,6 @@ require (
 	github.com/miekg/dns v1.1.4
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
-	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/optiopay/kafka v0.0.0-20180809090225-01ce283b732b
 	github.com/pborman/uuid v1.2.0
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect

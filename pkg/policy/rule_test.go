@@ -18,6 +18,7 @@ package policy
 
 import (
 	"bytes"
+	stdlog "log"
 	"net"
 
 	"github.com/cilium/cilium/api/v1/models"
@@ -27,7 +28,6 @@ import (
 	"github.com/cilium/cilium/pkg/labels"
 	"github.com/cilium/cilium/pkg/policy/api"
 
-	logging "github.com/op/go-logging"
 	. "gopkg.in/check.v1"
 )
 
@@ -305,7 +305,7 @@ func (ds *PolicyTestSuite) TestMergeL4PolicyEgress(c *C) {
 	buffer := new(bytes.Buffer)
 	fromBar := &SearchContext{
 		From:    labels.ParseSelectLabelArray("bar"),
-		Logging: logging.NewLogBackend(buffer, "", 0),
+		Logging: stdlog.New(buffer, "", 0),
 		Trace:   TRACE_VERBOSE,
 	}
 
@@ -1339,7 +1339,7 @@ func checkIngress(c *C, repo *Repository, ctx *SearchContext, verdict api.Decisi
 	defer repo.Mutex.RUnlock()
 
 	buffer := new(bytes.Buffer)
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 	expectResult(c, verdict, repo.AllowsIngressRLocked(ctx), buffer)
 }
 
@@ -1348,7 +1348,7 @@ func checkEgress(c *C, repo *Repository, ctx *SearchContext, verdict api.Decisio
 	defer repo.Mutex.RUnlock()
 
 	buffer := new(bytes.Buffer)
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 	expectResult(c, verdict, repo.AllowsEgressRLocked(ctx), buffer)
 }
 
@@ -1510,7 +1510,7 @@ func (ds *PolicyTestSuite) TestEgressL4AllowAll(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{From: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4EgressPolicy, err := repo.ResolveL4EgressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1564,7 +1564,7 @@ func (ds *PolicyTestSuite) TestEgressL4AllowWorld(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{From: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4EgressPolicy, err := repo.ResolveL4EgressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1617,7 +1617,7 @@ func (ds *PolicyTestSuite) TestEgressL4AllowAllEntity(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{From: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4EgressPolicy, err := repo.ResolveL4EgressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1665,7 +1665,7 @@ func (ds *PolicyTestSuite) TestEgressL3AllowWorld(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{From: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 }
 
 func (ds *PolicyTestSuite) TestEgressL3AllowAllEntity(c *C) {
@@ -1700,7 +1700,7 @@ func (ds *PolicyTestSuite) TestEgressL3AllowAllEntity(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{From: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 }
 
 func (ds *PolicyTestSuite) TestL4WildcardMerge(c *C) {
@@ -1740,7 +1740,7 @@ func (ds *PolicyTestSuite) TestL4WildcardMerge(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err := repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1792,7 +1792,7 @@ func (ds *PolicyTestSuite) TestL4WildcardMerge(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctx = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err = repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1842,7 +1842,7 @@ func (ds *PolicyTestSuite) TestL4WildcardMerge(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctx = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err = repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1892,7 +1892,7 @@ func (ds *PolicyTestSuite) TestL4WildcardMerge(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctx = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err = repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1950,7 +1950,7 @@ func (ds *PolicyTestSuite) TestL3L4L7Merge(c *C) {
 
 	buffer := new(bytes.Buffer)
 	ctx := SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err := repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
@@ -1998,7 +1998,7 @@ func (ds *PolicyTestSuite) TestL3L4L7Merge(c *C) {
 
 	buffer = new(bytes.Buffer)
 	ctx = SearchContext{To: labelsA, Trace: TRACE_VERBOSE}
-	ctx.Logging = logging.NewLogBackend(buffer, "", 0)
+	ctx.Logging = stdlog.New(buffer, "", 0)
 
 	l4IngressPolicy, err = repo.ResolveL4IngressPolicy(&ctx)
 	c.Assert(err, IsNil)
