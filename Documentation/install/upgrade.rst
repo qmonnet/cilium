@@ -291,6 +291,18 @@ Annotations:
    upgrade. Connections should successfully re-establish without requiring
    clients to reconnect.
 
+.. _1.8_upgrade_notes:
+
+1.8 Upgrade Notes
+-----------------
+
+Deprecated options
+~~~~~~~~~~~~~~~~~~
+
+* ``keep-bpf-templates``: This option no longer has any effect due to the BPF
+  assets not being compiled into the cilium-agent binary anymore. The option is
+  deprecated and will be removed in v1.9.
+
 .. _1.7_upgrade_notes:
 
 1.7 Upgrade Notes
