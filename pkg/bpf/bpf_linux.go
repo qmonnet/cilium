@@ -69,7 +69,7 @@ func CreateMap(mapType int, keySize, valueSize, maxEntries, flags, innerID uint3
 		uintptr(unsafe.Pointer(&uba)),
 		unsafe.Sizeof(uba),
 	)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&uba)
 	if option.Config.MetricsConfig.BPFSyscallDurationEnabled {
 		metrics.BPFSyscallDuration.WithLabelValues(metricOpCreate, metrics.Errno2Outcome(err)).Observe(duration.End(err == 0).Total().Seconds())
 	}
@@ -140,7 +140,7 @@ func UpdateElement(fd int, key, value unsafe.Pointer, flags uint64) error {
 	ret := UpdateElementFromPointers(fd, unsafe.Pointer(&uba), unsafe.Sizeof(uba))
 	runtime.KeepAlive(key)
 	runtime.KeepAlive(value)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&uba)
 	return ret
 }
 
@@ -157,6 +157,7 @@ func LookupElementFromPointers(fd int, structPtr unsafe.Pointer, sizeOfStruct ui
 		uintptr(structPtr),
 		sizeOfStruct,
 	)
+	runtime.KeepAlive(structPtr)
 	if option.Config.MetricsConfig.BPFSyscallDurationEnabled {
 		metrics.BPFSyscallDuration.WithLabelValues(metricOpLookup, metrics.Errno2Outcome(err)).Observe(duration.End(err == 0).Total().Seconds())
 	}
@@ -200,7 +201,7 @@ func deleteElement(fd int, key unsafe.Pointer) (uintptr, syscall.Errno) {
 		unsafe.Sizeof(uba),
 	)
 	runtime.KeepAlive(key)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&uba)
 	if option.Config.MetricsConfig.BPFSyscallDurationEnabled {
 		metrics.BPFSyscallDuration.WithLabelValues(metricOpDelete, metrics.Errno2Outcome(err)).Observe(duration.End(err == 0).Total().Seconds())
 	}
@@ -262,7 +263,7 @@ func GetNextKey(fd int, key, nextKey unsafe.Pointer) error {
 	ret := GetNextKeyFromPointers(fd, unsafe.Pointer(&uba), unsafe.Sizeof(uba))
 	runtime.KeepAlive(key)
 	runtime.KeepAlive(nextKey)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&uba)
 	return ret
 }
 
@@ -277,7 +278,7 @@ func GetFirstKey(fd int, nextKey unsafe.Pointer) error {
 
 	ret := GetNextKeyFromPointers(fd, unsafe.Pointer(&uba), unsafe.Sizeof(uba))
 	runtime.KeepAlive(nextKey)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&uba)
 	return ret
 }
 
@@ -307,8 +308,8 @@ func ObjPin(fd int, pathname string) error {
 		uintptr(unsafe.Pointer(&uba)),
 		unsafe.Sizeof(uba),
 	)
-	runtime.KeepAlive(pathStr)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&pathStr)
+	runtime.KeepAlive(&uba)
 
 	if option.Config.MetricsConfig.BPFSyscallDurationEnabled {
 		metrics.BPFSyscallDuration.WithLabelValues(metricOpObjPin, metrics.Errno2Outcome(err)).Observe(duration.End(err == 0).Total().Seconds())
@@ -338,8 +339,8 @@ func ObjGet(pathname string) (int, error) {
 		uintptr(unsafe.Pointer(&uba)),
 		unsafe.Sizeof(uba),
 	)
-	runtime.KeepAlive(pathStr)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&pathStr)
+	runtime.KeepAlive(&uba)
 	if option.Config.MetricsConfig.BPFSyscallDurationEnabled {
 		metrics.BPFSyscallDuration.WithLabelValues(metricOpObjGet, metrics.Errno2Outcome(err)).Observe(duration.End(err == 0).Total().Seconds())
 	}
@@ -377,7 +378,7 @@ func MapFdFromID(id int) (int, error) {
 		uintptr(unsafe.Pointer(&uba)),
 		unsafe.Sizeof(uba),
 	)
-	runtime.KeepAlive(uba)
+	runtime.KeepAlive(&uba)
 	if option.Config.MetricsConfig.BPFSyscallDurationEnabled {
 		metrics.BPFSyscallDuration.WithLabelValues(metricOpGetFDByID, metrics.Errno2Outcome(err)).Observe(duration.End(err == 0).Total().Seconds())
 	}
@@ -606,9 +607,6 @@ func TestDummyProg(progType ProgType, attachType uint32) error {
 	fd, _, errno := unix.Syscall(unix.SYS_BPF, BPF_PROG_LOAD,
 		uintptr(unsafe.Pointer(&bpfAttr)),
 		unsafe.Sizeof(bpfAttr))
-	runtime.KeepAlive(insns)
-	runtime.KeepAlive(license)
-	runtime.KeepAlive(bpfAttr)
 	unix.Setrlimit(unix.RLIMIT_MEMLOCK, &oldLim)
 	if errno == 0 {
 		defer unix.Close(int(fd))
@@ -630,5 +628,10 @@ func TestDummyProg(progType ProgType, attachType uint32) error {
 		}
 		return nil
 	}
+
+	runtime.KeepAlive(&insns)
+	runtime.KeepAlive(&license)
+	runtime.KeepAlive(&bpfAttr)
+
 	return errno
 }

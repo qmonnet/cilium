@@ -608,11 +608,11 @@ func (m *Map) DumpWithCallback(cb DumpCallback) error {
 		}
 	}
 
-	runtime.KeepAlive(key)
-	runtime.KeepAlive(nextKey)
-	runtime.KeepAlive(bpfCurrentKey)
-	runtime.KeepAlive(value)
-	runtime.KeepAlive(bpfNextKey)
+	runtime.KeepAlive(&key)
+	runtime.KeepAlive(&nextKey)
+	runtime.KeepAlive(&bpfCurrentKey)
+	runtime.KeepAlive(&value)
+	runtime.KeepAlive(&bpfNextKey)
 
 	return nil
 }
@@ -749,11 +749,11 @@ func (m *Map) DumpReliablyWithCallback(cb DumpCallback, stats *DumpStats) error 
 		// continue from the next key
 		copy(currentKey, nextKey)
 	}
-	runtime.KeepAlive(currentKey)
-	runtime.KeepAlive(value)
-	runtime.KeepAlive(bpfCurrentKey)
-	runtime.KeepAlive(nextKey)
-	runtime.KeepAlive(bpfNextKey)
+	runtime.KeepAlive(&currentKey)
+	runtime.KeepAlive(&value)
+	runtime.KeepAlive(&bpfCurrentKey)
+	runtime.KeepAlive(&nextKey)
+	runtime.KeepAlive(&bpfNextKey)
 
 	return ErrMaxLookup
 }
@@ -937,7 +937,7 @@ func (m *Map) DeleteAll() error {
 	for {
 		if err := GetFirstKey(m.fd, unsafe.Pointer(&nextKey[0])); err != nil {
 			if err == io.EOF {
-				return nil
+				break
 			}
 			return err
 		}
@@ -955,6 +955,10 @@ func (m *Map) DeleteAll() error {
 			return err
 		}
 	}
+
+	runtime.KeepAlive(&nextKey)
+
+	return nil
 }
 
 // GetNextKey returns the next key in the Map after key.
