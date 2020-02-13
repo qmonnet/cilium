@@ -187,7 +187,7 @@ var _ = Describe("K8sPolicyTest", func() {
 		}
 
 		BeforeAll(func() {
-			namespaceForTest = helpers.GenerateNamespaceForTest()
+			namespaceForTest = helpers.GenerateNamespaceForTest("")
 			kubectl.NamespaceDelete(namespaceForTest)
 			kubectl.NamespaceCreate(namespaceForTest).ExpectSuccess("could not create namespace")
 			kubectl.Apply(helpers.ApplyOptions{FilePath: demoPath, Namespace: namespaceForTest}).ExpectSuccess("could not create resource")
@@ -1132,7 +1132,7 @@ EOF`, k, v)
 
 		var (
 			err               error
-			secondNS          = "second"
+			secondNS          string
 			appPods           map[string]string
 			appPodsNS         map[string]string
 			clusterIP         string
@@ -1147,6 +1147,7 @@ EOF`, k, v)
 		)
 
 		BeforeAll(func() {
+			secondNS = helpers.GenerateNamespaceForTest("2")
 			demoPath = helpers.ManifestGet(kubectl.BasePath(), "demo.yaml")
 			l3L4Policy = helpers.ManifestGet(kubectl.BasePath(), "l3-l4-policy.yaml")
 			cnpSecondNS = helpers.ManifestGet(kubectl.BasePath(), "cnp-second-namespaces.yaml")
@@ -1336,8 +1337,8 @@ EOF`, k, v)
 			demoPath        string
 			demoManifestNS1 string
 			demoManifestNS2 string
-			firstNS         = "first"
-			secondNS        = "second"
+			firstNS         string
+			secondNS        string
 
 			appPodsFirstNS  map[string]string
 			appPodsSecondNS map[string]string
@@ -1352,6 +1353,8 @@ EOF`, k, v)
 		)
 
 		BeforeAll(func() {
+			firstNS = helpers.GenerateNamespaceForTest("1")
+			secondNS = helpers.GenerateNamespaceForTest("2")
 			demoPath = helpers.ManifestGet(kubectl.BasePath(), "demo.yaml")
 			egressDenyAllPolicy = helpers.ManifestGet(kubectl.BasePath(), "ccnp-default-deny-egress.yaml")
 			ingressDenyAllPolicy = helpers.ManifestGet(kubectl.BasePath(), "ccnp-default-deny-ingress.yaml")
