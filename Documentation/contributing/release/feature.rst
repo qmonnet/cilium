@@ -39,6 +39,12 @@ On Freeze date
         pkg/policy/api/ @cilium/api
         pkg/proxy/accesslog @cilium/api
 
+#. Remove the GitHub workflow for the ``CODEOWNERS`` consistency checks:
+
+   .. code-block:: shell-session
+
+        git rm .github/workflows/lint-codeowners.yaml
+
 #. Delete the ``stable.txt`` file.
 
    .. code-block:: shell-session
