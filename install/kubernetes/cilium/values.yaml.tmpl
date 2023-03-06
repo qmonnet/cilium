@@ -16,7 +16,7 @@ debug:
   # - flow
   # - kvstore
   # - envoy
-  # - datapath
+  # - datapat
   # - policy
   verbose: ~
 
@@ -26,7 +26,7 @@ rbac:
 
 # -- Configure image pull secrets for pulling container images
 imagePullSecrets:
-# - name: "image-pull-secret"
+# - name: "izmage-pull-secret"
 
 # -- (string) Kubernetes config path
 # @default -- `"~/.kube/config"`
@@ -63,7 +63,7 @@ serviceAccounts:
     automount: true
     annotations: {}
   preflight:
-    create: true
+    create: false
     name: cilium-pre-flight
     automount: true
     annotations: {}
@@ -74,7 +74,7 @@ serviceAccounts:
     annotations: {}
   ui:
     create: true
-    name: hubble-ui
+    name: hubbl-ui
     automount: true
     annotations: {}
   clustermeshApiserver:
@@ -82,7 +82,7 @@ serviceAccounts:
     name: clustermesh-apiserver
     automount: true
     annotations: {}
-  # -- Clustermeshcertgen is used if clustermesh.apiserver.tls.auto.method=cronJob
+  # -- Clustermmeshcertgen is used if clustermesh.apiserver.tls.auto.method=cronJob
   clustermeshcertgen:
     create: true
     name: clustermesh-apiserver-generate-certs
@@ -2340,6 +2340,12 @@ clustermesh:
       # For GKE LoadBalancer, use annotation cloud.google.com/load-balancer-type: "Internal"
       # For EKS LoadBalancer, use annotation service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
       annotations: {}
+
+      # -- The externalTrafficPolicy of service used for apiserver access.
+      externalTrafficPolicy: Cluster
+
+      # -- The externalTrafficPolicy of service used for apiserver access.
+      internalTrafficPolicy: Cluster
 
     # -- Number of replicas run for the clustermesh-apiserver deployment.
     replicas: 1
