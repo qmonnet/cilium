@@ -1956,6 +1956,129 @@ int tail_ipv4_policy(struct __ctx_buff *ctx)
 	return ret;
 }
 
+static __always_inline bool
+ipv4_to_endpoint_is_hairpin_flow(struct __ctx_buff *ctx, struct iphdr *ip4)
+{
+	struct ipv4_ct_tuple tuple = {};
+	struct lb4_backend *backend __maybe_unused;
+	struct ct_entry *entry;
+	struct ct_map *map;
+	int err, l4_off;
+	__be16 client_port __maybe_unused, backend_port __maybe_unused;
+
+	/* Extract the tuple from the packet. We have:
+	 *
+	 * saddr: service IP
+	 * sport: client port
+	 *
+	 * daddr: pod IP
+	 * dport: service port
+	 */
+	err = lb4_extract_tuple(ctx, ip4, ETH_HLEN, &l4_off, &tuple);
+	if (IS_ERR(err))
+		return false;
+	client_port = tuple.sport;
+
+	/* At this stage the conntrack table looks like this:
+	 *
+	 * TCP OUT 169.254.42.1:42340 -> 10.1.2.251:80 [ LBLoopback ]
+	 * TCP IN  169.254.42.1:42340 -> 10.1.2.251:80 [ LBLoopback ]
+	 * TCP OUT 172.20.146.154:8080 -> 10.1.2.251:42340 [ ]
+	 *
+	 * In other words:
+	 *
+	 * OUT IPV4_LOOPBACK:client_port -> pod_IP:backend_port [ LBLoopback ]
+	 * IN  IPV4_LOOPBACK:client_port -> pod_IP:backend_port [ LBLoopback ]
+	 * OUT service_IP:service_port -> pod_IP:client_port [ ]
+	 *
+	 * The BPF map contains:
+	 *
+	 * daddr a9 fe 2a 01	169.254.42.1	IPV4_LOOPBACK
+	 * saddr 0a 01 02 fb	10.1.2.251	pod IP
+	 * dport 00 50		80		backend port
+	 * sport a5 64		42340		client port
+	 * nexthdr 06		TCP
+	 * flags 00		TUPLE_F_OUT
+	 *
+	 * daddr a9 fe 2a 01	169.254.42.1	IPV4_LOOPBACK
+	 * saddr 0a 01 02 fb	10.1.2.251	pod IP
+	 * dport 00 50		80		backend port
+	 * sport a5 64		42340		client port
+	 * nexthdr 06		TCP
+	 * flags 01		TUPLE_F_IN
+	 *
+	 * daddr ac 14 92 9a	172.20.146.154	service IP
+	 * saddr 0a 01 02 fb	10.1.2.251	pod IP
+	 * dport a5 64		42340		client port
+	 * sport 1f 90		8080		service port
+	 * nexthdr 06		TCP
+	 * flags 04		TUPLE_F_SERVICE
+	 */
+
+	/* First lookup: CT_SERVICE, so we can retrieve the backend port.
+	 * We want an entry for the following tuple:
+	 *
+	 * saddr: pod IP
+	 * sport: client port
+	 *
+	 * daddr: service IP
+	 * dport: service port
+	 *
+	 * ... Unless the above is wrong and we need in fact (from BPF map layout):
+	 *
+	 * saddr: pod IP
+	 * sport: service port
+	 *
+	 * daddr: service IP
+	 * dport: client port
+	 */
+	/*
+	tuple.saddr = ip4->daddr;
+	tuple.sport = tuple.dport;
+
+	tuple.daddr = ip4->saddr;
+	tuple.dport = client_port;
+
+	tuple.flags = TUPLE_F_SERVICE;
+
+	map = select_ct_map4(ctx, CT_SERVICE, &tuple);
+	entry = map_lookup_elem(map, &tuple);
+	if (!entry)
+		return false;
+
+	backend = lb4_lookup_backend(ctx, entry->backend_id);
+	if (!backend)
+		return false;
+	*/
+	backend_port = 80;
+
+	/* Second lookup: CT_EGRESS, using the backend port, looking for an
+	 * entry for the following tuple, and with the loopback flag set:
+	 *
+	 * saddr: pod IP
+	 * sport: client port
+	 *
+	 * daddr: IPV4_LOOPBACK
+	 * dport: backend port
+	 */
+
+	tuple.saddr = ip4->daddr;
+	tuple.sport = client_port;
+
+	tuple.daddr = IPV4_LOOPBACK;
+	tuple.dport = backend_port;
+
+	tuple.flags = TUPLE_F_OUT;
+
+	map = select_ct_map4(ctx, CT_EGRESS, &tuple);
+	entry = map_lookup_elem(map, &tuple);
+	if (entry) {
+		return entry->lb_loopback == 1;
+	}
+
+	return false;
+}
+
 __section_tail(CILIUM_MAP_CALLS, CILIUM_CALL_IPV4_TO_ENDPOINT)
 int tail_ipv4_to_endpoint(struct __ctx_buff *ctx)
 {
@@ -2004,6 +2127,19 @@ int tail_ipv4_to_endpoint(struct __ctx_buff *ctx)
 	update_metrics(ctx_full_len(ctx), METRIC_INGRESS, REASON_FORWARDED);
 #endif
 	ctx_store_meta(ctx, CB_SRC_LABEL, 0);
+
+	if (ip4->protocol == IPPROTO_TCP &&
+	    ipv4_to_endpoint_is_hairpin_flow(ctx, ip4)) {
+		send_trace_notify4(ctx, TRACE_TO_LXC,
+				   ctx_load_meta(ctx, CB_SRC_LABEL),
+				   SECLABEL, ip4->saddr, LXC_ID,
+				   ctx->ingress_ifindex,
+				   TRACE_REASON_UNKNOWN, 0);
+
+		/* Skip policy check for hairpinned flow */
+		ret = CTX_ACT_OK;
+		goto out;
+	}
 
 	ret = ipv4_policy(ctx, 0, src_sec_identity, &ct_status, NULL,
 			  &ext_err, &proxy_port, true, false);
