@@ -675,7 +675,46 @@ func (s *Service) reUpsertServicesByName(name, namespace string) error {
 	return nil
 }
 
+func getFrontendClusterID(frontend lb.L3n4AddrID) uint32 {
+	return frontend.L3n4Addr.AddrCluster.ClusterID()
+}
+
+func isRemoteTargetNode(params *lb.SVC) bool {
+	localClusterID := option.Config.ClusterID
+	targetClusterID := getFrontendClusterID(params.Frontend)
+
+	return targetClusterID != localClusterID
+}
+
 func (s *Service) upsertService(params *lb.SVC) (bool, lb.ID, error) {
+	// With Clustermesh, load-balancing NodePort traffic on the source node
+	// can cause issues.
+	//
+	// For example, socket load-balancing may route traffic incorrectly and
+	// send it to a backend on local cluster rather than the remote
+	// cluster, due to the use of wildcard IP lookups in the datapath that
+	// don't preserve cluster knowledge. For more details, see:
+	// https://github.com/cilium/cilium/issues/24692#issuecomment-1517583306
+	//
+	// Another issue may arise when using the clustermesh-apiserver in
+	// combination with KPR, tunneling, WireGuard and the Host Firewall. In
+	// this case, the routing becomes asymmetric, using the native device
+	// for one direction and tunneling for the other, and may be dropped if
+	// WireGuard encryption starts on one side before the other has
+	// configured it. As a result, Cilium may fail to establish the initial
+	// connection to clustermesh-apiserver NodePort services. For details,
+	// see:
+	// https://github.com/cilium/cilium/issues/31209
+	//
+	// To work around such issues, skip load-balancing NodePort traffic at
+	// the source when the target IP is for a node in a remote cluster, but
+	// just forward it and let the remote node handle it.
+	if params.Type == lb.SVCTypeNodePort && isRemoteTargetNode(params) {
+		log.Infof("Skipping service %s/%s as it is a NodePort service with a remote target IP",
+			params.Name.Namespace, params.Name.Name)
+		return false, lb.ID(0), nil
+	}
+
 	empty := L7LBResourceName{}
 
 	// Set L7 LB for this service if registered.
